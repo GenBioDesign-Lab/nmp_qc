@@ -247,7 +247,7 @@ def create_graph_enzymes(file):
     g = nx.parse_adjlist(adj_list, nodetype=int, delimiter=",")
     
     for i in range(1, g.number_of_nodes()+1):
-        g.node[i]['labels'] = np.array(vl[i-1])
+        g.nodes[i]['labels'] = np.array(vl[i-1])
     
     c = int(lines[idx_clss+1])
     
@@ -273,7 +273,7 @@ def create_graph_mutag(file):
     g = nx.parse_edgelist(edge_list, nodetype=int, data=(('weight', float),), delimiter=",")
     
     for i in range(1, g.number_of_nodes()+1):
-        g.node[i]['labels'] = np.array(vl[i-1])
+        g.nodes[i]['labels'] = np.array(vl[i-1])
     
     c = int(lines[idx_clss+1])
     
@@ -307,7 +307,7 @@ def create_graph_gwhist(file):
     for i in range(g.number_of_nodes()):
         if i not in g.node:
             g.add_node(i)
-        g.node[i]['labels'] = np.array(vl[i])
+        g.nodes[i]['labels'] = np.array(vl[i])
         
     return g
 
@@ -356,7 +356,7 @@ def create_graph_grec(file):
     for i in range(len(vl)):
         if i not in g.node:
             g.add_node(i)
-        g.node[i]['labels'] = np.array(vl[i][:3])
+        g.nodes[i]['labels'] = np.array(vl[i][:3])
 
     return g
 
@@ -382,7 +382,7 @@ def create_graph_letter(file):
     for i in range(len(vl)):
         if i not in g.node:
             g.add_node(i)
-        g.node[i]['labels'] = np.array(vl[i][:2])
+        g.nodes[i]['labels'] = np.array(vl[i][:2])
 
     return g
 
@@ -455,18 +455,18 @@ def xyz_graph_reader(graph_file):
 
             g.add_node(i, a_type=atom_i.GetSymbol(), a_num=atom_i.GetAtomicNum(), acceptor=0, donor=0,
                        aromatic=atom_i.GetIsAromatic(), hybridization=atom_i.GetHybridization(),
-                       num_h=atom_i.GetTotalNumHs(), coord=np.array(atom_properties[i][1:4]).astype(np.float),
+                       num_h=atom_i.GetTotalNumHs(), coord=np.array(atom_properties[i][1:4]).astype(np.float64),
                        pc=float(atom_properties[i][4]))
 
         for i in range(0, len(feats)):
             if feats[i].GetFamily() == 'Donor':
                 node_list = feats[i].GetAtomIds()
                 for i in node_list:
-                    g.node[i]['donor'] = 1
+                    g.nodes[i]['donor'] = 1
             elif feats[i].GetFamily() == 'Acceptor':
                 node_list = feats[i].GetAtomIds()
                 for i in node_list:
-                    g.node[i]['acceptor'] = 1
+                    g.nodes[i]['acceptor'] = 1
 
         # Read Edges
         for i in range(0, m.GetNumAtoms()):
@@ -474,11 +474,11 @@ def xyz_graph_reader(graph_file):
                 e_ij = m.GetBondBetweenAtoms(i, j)
                 if e_ij is not None:
                     g.add_edge(i, j, b_type=e_ij.GetBondType(),
-                               distance=np.linalg.norm(g.node[i]['coord']-g.node[j]['coord']))
+                               distance=np.linalg.norm(g.nodes[i]['coord']-g.nodes[j]['coord']))
                 else:
                     # Unbonded
                     g.add_edge(i, j, b_type=None,
-                               distance=np.linalg.norm(g.node[i]['coord'] - g.node[j]['coord']))
+                               distance=np.linalg.norm(g.nodes[i]['coord'] - g.nodes[j]['coord']))
     return g , l
     
 if __name__ == '__main__':

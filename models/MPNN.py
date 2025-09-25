@@ -72,8 +72,9 @@ class MPNN(nn.Module):
         # Layer
         for t in range(0, self.n_layers):
             e_aux = e.view(-1, e.size(3))
-
-            h_aux = h[t].view(-1, h[t].size(2))
+            bsz, num_nodes, hidden_size = h[t].size()
+            h_w_pairs = h[t].unsqueeze(1).expand(bsz, num_nodes, num_nodes, hidden_size)
+            h_aux = h_w_pairs.contiguous().view(-1, hidden_size)
 
             m = self.m[0].forward(h[t], h_aux, e_aux)
             m = m.view(h[0].size(0), h[0].size(1), -1, m.size(1))
@@ -86,7 +87,7 @@ class MPNN(nn.Module):
             h_t = self.u[0].forward(h[t], m)
 
             # Delete virtual nodes
-            h_t = (torch.sum(h_in, 2).expand_as(h_t) > 0).type_as(h_t) * h_t
+            h_t = (torch.sum(h_in, 2, keepdim=True).expand_as(h_t) > 0).type_as(h_t) * h_t
             h.append(h_t)
 
         # Readout
